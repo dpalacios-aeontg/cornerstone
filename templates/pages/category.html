@@ -2,9 +2,13 @@
 category:
     shop_by_price: true
     products:
-        limit: {{theme_settings.categorypage_products_per_page}}
+        limit: 200
 ---
 {{inject "categoryProductsPerPage" theme_settings.categorypage_products_per_page}}
+{{inject 'noCompareMessage' (lang 'compare.no_compare')}}
+{{inject 'category' category}}
+{{inject 'settingsDataTagEnabled' settings.data_tag_enabled}}
+{{inject 'shopByPriceRanges' category.shop_by_price}}
 {{#partial "head"}}
     {{#if pagination.category.previous}}
         <link rel="prev" href="{{pagination.category.previous}}">
@@ -15,6 +19,13 @@ category:
 {{/partial}}
 
 {{#partial "page"}}
+
+<script type="text/x-template" id="product-list-vue-template">
+    {{> components/category/product-list-vue-template}}
+</script>
+<script type="text/x-template" id="sidebar-vue-template">
+    {{> components/category/sidebar-vue-template}}
+</script>
 
 {{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
 {{#if category.image}}
@@ -30,28 +41,31 @@ category:
     {{{region name="category_below_header"}}}
 {{/unless}}
 {{{category.description}}}
-<div class="page">
-    {{#if category.faceted_search_enabled}}
-        <aside class="page-sidebar" id="faceted-search-container">
-            {{> components/category/sidebar}}
-        </aside>
-    {{else if category.subcategories}}
-        <aside class="page-sidebar" id="faceted-search-container">
-            {{> components/category/sidebar}}
-        </aside>
-    {{else if category.shop_by_price}}
-        {{#if theme_settings.shop_by_price_visibility}}
-             <aside class="page-sidebar" id="faceted-search-container">
-                {{> components/category/sidebar}}
-            </aside>
-        {{/if}}
-    {{/if}}
+<div id='category-app' class="page">
 
     <div class="page-content" id="product-listing-container">
         {{> components/category/product-listing}}
-        {{{region name="category_below_content"}}}
     </div>
-</div>
 
+    <div class="page-content" id="product-listing-vue-container">
+        <sidebar
+            ref="filter-ref"
+            @filter="filterCallback($event)"
+        ></sidebar>
+        <product-listing-container
+            :page="page"
+            :filteredProductsFromParent="filteredProducts"
+        ></product-listing-container>
+        <pagination
+            ref="pagination-ref"
+            v-model="page"
+            :records="totalProducts"
+            :per-page="12"
+            @paginate="myCallBack($event)"
+        ></pagination>
+    </div>
+
+    {{{region name="category_below_content"}}}
+</div>
 {{/partial}}
 {{> layout/base}}

@@ -23,6 +23,8 @@
     "regenerator-runtime": "^0.13.7",
     "slick-carousel": "^1.8.1",
     "svg-injector": "^1.1.3",
+    "v-pagination-3": "^0.1.7",
+    "vue": "^3.2.37",
     "webfontloader": "^1.6.28",
     "whatwg-fetch": "^3.6.1"
   },

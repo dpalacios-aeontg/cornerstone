@@ -79,6 +79,7 @@ module.exports = {
             lazysizes: path.resolve(__dirname, 'node_modules/lazysizes/lazysizes.min.js'),
             'slick-carousel': path.resolve(__dirname, 'node_modules/slick-carousel/slick/slick.min.js'),
             'svg-injector': path.resolve(__dirname, 'node_modules/svg-injector/dist/svg-injector.min.js'),
+            'vue': path.resolve(__dirname, 'node_modules/vue/dist/vue.esm-bundler.js'),
         },
     },
 };

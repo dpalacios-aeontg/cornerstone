@@ -1,0 +1,55 @@
+// Pagination
+.VuePagination {
+    text-align: center;
+
+    nav {
+        ul.pagination {
+            list-style-type: none;
+
+            li.page-item {
+                display: inline-block;
+
+                button.page-link {
+                    background-color: #000;
+                    color: #fff;
+                    margin: 0 .25rem;
+                    font-size: 1.25rem;
+                    border-radius: 8px;
+                    min-width: 30px;
+                    cursor: pointer;
+
+                    &.active,
+                    &:hover {
+                        background-color: #557b97;
+                    }
+                }
+            }
+        }
+    }
+}
+
+#vue-product-list {
+    width:  75%;
+
+    ul.productGrid {
+        li.product {
+            @include breakpoint('medium') {
+                width: calc(25% - 1.5rem);
+            }
+
+            article.card {
+                figure.card-figure {
+                    a.card-figure__link {
+                        .card-img-container {
+                            position: relative;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.page-sidebar {
+    float: right;
+}

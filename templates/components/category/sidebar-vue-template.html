@@ -1,0 +1,18 @@
+<aside class="page-sidebar" id="faceted-search-container">
+    <nav>
+        <div class="sidebarBlock">
+            <h2 class="sidebarBlock-heading" data-shop-by-price>
+                Shop By Price
+            </h2>
+            <ul class="navList">
+                <li v-for='(priceRange, index) in shopByPriceRanges' class="navList-item">
+                    <label>
+                        <input type='radio' v-model='shopByPriceRange' :value='index'/>
+                        Price range: \{{ priceRange.low.formatted }} - \{{ priceRange.high.formatted }}
+                    </label>
+                </li>
+            </ul>
+            <button v-on:click="() => shopByPriceRange = null">Clear Shop By Price</button>
+        </div>
+    </nav>
+</aside>
