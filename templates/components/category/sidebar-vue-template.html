@@ -5,14 +5,32 @@
                 Shop By Price
             </h2>
             <ul class="navList">
+                <li class="navList-item">
+                    <label>
+                        <input type="radio" v-model="shopByPriceRange" :value="null" v-on:change="applyFilters"/>
+                        All Prices
+                    </label>
+                </li>
                 <li v-for='(priceRange, index) in shopByPriceRanges' class="navList-item">
                     <label>
-                        <input type='radio' v-model='shopByPriceRange' :value='index'/>
+                        <input type='radio' v-model='shopByPriceRange' :value='index' v-on:change="applyFilters"/>
                         Price range: \{{ priceRange.low.formatted }} - \{{ priceRange.high.formatted }}
                     </label>
                 </li>
             </ul>
-            <button v-on:click="() => shopByPriceRange = null">Clear Shop By Price</button>
         </div>
+        <div v-if='category.name.toLowerCase() === "battery"' class="sidebarBlock">
+            <h2 class="sidebarBlock-heading" data-capacity>
+                Battery Capacity
+            </h2>
+            <label for="batteryCapacity">
+                <span>\{{ batteryCapacity }}Wh</span>
+                <br/>
+                <input type="range" :min="batteryCapacityFilterRanges.min" :max="batteryCapacityFilterRanges.max" name="batteryCapacity" v-model="batteryCapacity" v-on:mouseup="applyFilters"/>
+                <br/>
+                <p>\{{batteryCapacityFilterRanges.min}}Wh - \{{batteryCapacityFilterRanges.max}}Wh</p>
+            </label>
+        </div>
+        <button v-on:click="resetFilters" id="faceted-search-reset-button">Reset</button>
     </nav>
 </aside>

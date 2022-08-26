@@ -10,7 +10,7 @@
                 display: inline-block;
 
                 button.page-link {
-                    background-color: #000;
+                    background-color: #557b97;
                     color: #fff;
                     margin: 0 .25rem;
                     font-size: 1.25rem;
@@ -18,9 +18,12 @@
                     min-width: 30px;
                     cursor: pointer;
 
-                    &.active,
+                    &.active {
+                        background-color: #000;
+                    }
+
                     &:hover {
-                        background-color: #557b97;
+                        background-color: darken(#557b97, .33);
                     }
                 }
             }
@@ -52,4 +55,17 @@
 
 .page-sidebar {
     float: right;
+
+    nav {
+        #faceted-search-reset-button {
+            background-color: #557b97;
+            color: #fff;
+            font-size: 1.25rem;
+            border-radius: 8px;
+
+            &:hover {
+                background-color: #000;
+            }
+        }
+    }
 }

@@ -56,12 +56,15 @@ export default class Category extends CatalogPage {
                 return {
                     category: self.context.category,
                     settingsDataTagEnabled: self.context.settingsDataTagEnabled,
-                    // filteredProducts: self.context.category.products,
                     page: 1,
                     filters: {
                         shopByPrice: {
                             high: 0,
                             low: 0,
+                            enabled: false,
+                        },
+                        batteryCapacity: {
+                            value: null,
                             enabled: false,
                         },
                     },
@@ -75,19 +78,26 @@ export default class Category extends CatalogPage {
                     console.log({ event });
                     console.log(JSON.stringify({ event }, null, 2));
 
-                    switch (event.type) {
-                    case 'shopByPrice':
-                        if (event.value === null) {
-                            this.filters.shopByPrice.enabled = false;
-                        } else {
-                            this.filters.shopByPrice.enabled = true;
-                            this.filters.shopByPrice.high = event.value.high.value;
-                            this.filters.shopByPrice.low = event.value.low.value;
-                        }
-                        break;
-                    default:
-                        break;
+                    // Filter By Price Range
+                    if (event.shopByPriceRange !== null) {
+                        this.filters.shopByPrice.enabled = true;
+                        this.filters.shopByPrice.low = event.shopByPriceRange.low.value;
+                        this.filters.shopByPrice.high = event.shopByPriceRange.high.value;
+                    } else {
+                        this.filters.shopByPrice.enabled = false;
+                        this.filters.shopByPrice.high = 0;
+                        this.filters.shopByPrice.low = 0;
                     }
+
+                    if (event.batteryCapacity !== null) {
+                        this.filters.batteryCapacity.enabled = true;
+                        this.filters.batteryCapacity.value = event.batteryCapacity;
+                    } else {
+                        this.filters.batteryCapacity.enabled = false;
+                        this.filters.batteryCapacity.value = event.batteryCapacity;
+                    }
+
+                    this.page = 1;
                 },
             },
             computed: {
@@ -98,26 +108,34 @@ export default class Category extends CatalogPage {
                     let filteredProds = this.category.products;
 
                     if (this.filters.shopByPrice.enabled) {
-                        console.log('this.filters.shopByPrice.enabled === TRUE');
+                        console.log('this.filters.shopByPrice.enabled');
                         const { low, high } = this.filters.shopByPrice;
                         filteredProds = filteredProds.filter(product => {
                             const { value } = product.price?.without_tax || { value: 0 };
                             return value >= low && value <= high;
                         });
-                    } else {
-                        console.log('this.filters.shopByPrice.enabled === FALSE');
                     }
 
-                    console.log({ filteredProds });
+                    console.log({ 'filteredProds before battery capacity filtering': filteredProds });
+                    if (this.filters.batteryCapacity.enabled) {
+                        console.log('this.filters.batteryCapacity.enabled');
+                        const { value } = this.filters.batteryCapacity;
+                        filteredProds = filteredProds.filter(product => {
+                            if (product.custom_fields !== null) {
+                                const batteryCapacityCustomField = product.custom_fields.find(x => x.name.toLowerCase() === 'capacity');
+                                const parsedValue = parseInt(batteryCapacityCustomField.value.split('Wh')[0], 10);
+                                console.log({ parsedValue, value });
+                                return parsedValue <= value;
+                            }
+
+                            return false;
+                        });
+                    }
 
                     return filteredProds;
                 },
             },
-            mounted() {
-                console.log('root app mounted');
-                console.log({ 'this.filteredProducts': this.filteredProducts });
-                console.log({ 'this.test': this.test });
-            },
+            mounted() {},
         })
             .component('pagination', Pagination)
             .component('product-listing-container', {
@@ -143,9 +161,8 @@ export default class Category extends CatalogPage {
                 },
                 watch: {
                     page(newVal, oldVal) {
-                        console.log({ newVal, oldVal });
                         if (newVal !== oldVal) {
-                            const headerHeight = this.headerElement.offsetHeight
+                            const headerHeight = this.headerElement.offsetHeight;
                             window.scrollTo({ top: headerHeight, behavior: 'smooth' });
                         }
                     },
@@ -161,7 +178,7 @@ export default class Category extends CatalogPage {
                             imageSrcSets.push(`${this.getImageSrc(path, size)} ${size}`);
                         });
                         return imageSrcSets.join(',');
-                    }
+                    },
                 },
                 computed: {
                     currentProducts() {
@@ -176,26 +193,35 @@ export default class Category extends CatalogPage {
                     },
                 },
                 mounted() {
-                    console.log('product-listing-container component mounted');
-                    console.log({ filteredProductsFromParent: this.filteredProductsFromParent });
                     const productListingContainer = document.querySelector('#product-listing-container');
                     productListingContainer.parentElement.removeChild(productListingContainer);
                 },
             }).component('sidebar', {
                 template: '#sidebar-vue-template',
-                props: ['filterCallback'],
+                props: ['category', 'filterCallback'],
                 data() {
                     return {
-                        something: true,
                         shopByPriceRanges: self.context.shopByPriceRanges,
                         shopByPriceRange: null,
-                    }
+                        batteryCapacity: 0,
+                    };
                 },
-                watch: {
-                    selectedShopByPriceRange(value) {
-                        console.log({ selectedShopByPriceRange: value });
-                        this.$emit('filter', { type: 'shopByPrice', value });
-                    }
+                methods: {
+                    applyFilters() {
+                        this.$emit('filter', {
+                            shopByPriceRange: this.selectedShopByPriceRange,
+                            batteryCapacity: this.batteryCapacity,
+                        });
+                    },
+                    resetFilters() {
+                        this.shopByPriceRange = null;
+                        this.batteryCapacity = this.batteryCapacityFilterRanges.max;
+
+                        this.$emit('filter', {
+                            shopByPriceRange: null,
+                            batteryCapacity: this.batteryCapacityFilterRanges.max,
+                        });
+                    },
                 },
                 computed: {
                     selectedShopByPriceRange() {
@@ -205,6 +231,25 @@ export default class Category extends CatalogPage {
 
                         return null;
                     },
+                    batteryCapacityFilterRanges() {
+                        if (this.category.name.toLowerCase() === 'battery' && this.category.products.length > 0) {
+                            const capacityCustomFieldsOne = this.category.products.filter(p => p.custom_fields !== null);
+                            const capacityCustomFields = capacityCustomFieldsOne.map(x => x.custom_fields.find(y => y.name.toLowerCase() === 'capacity'));
+
+                            if (capacityCustomFields.length > 0) {
+                                const capacityValues = capacityCustomFields.map(x => parseInt(x.value.split('Wh')[0], 10));
+                                return {
+                                    min: Math.min(...capacityValues),
+                                    max: Math.max(...capacityValues),
+                                };
+                            }
+                        }
+
+                        return { min: 0, max: 0 };
+                    },
+                },
+                mounted() {
+                    this.batteryCapacity = this.batteryCapacityFilterRanges.max;
                 },
             }).mount('#product-listing-vue-container');
     }

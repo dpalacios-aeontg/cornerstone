@@ -50,6 +50,7 @@ category:
     <div class="page-content" id="product-listing-vue-container">
         <sidebar
             ref="filter-ref"
+            :category="category"
             @filter="filterCallback($event)"
         ></sidebar>
         <product-listing-container
